@@ -692,10 +692,21 @@ class App(ctk.CTk):
         plt.close('all')
 
         fig, ax = plt.subplots(figsize=(8, 6))
-        fig.patch.set_facecolor(self.cget("fg_color")[1])
-        ax.set_facecolor(self.cget("fg_color")[1])
 
-        text_color = self.cget("text_color")[1] if isinstance(self.cget("text_color"), tuple) else self.cget("text_color")
+         # 1. Pega o NOME da cor de fundo para o tema atual (ex: 'gray14' ou 'gray86')
+        bg_color_name = self._apply_appearance_mode(self.cget("fg_color"))
+        # 2. Usa o método winfo_rgb para converter o NOME para valores RGB (0-65535)
+        #    e depois normaliza para o formato do Matplotlib (0.0-1.0)
+        bg_color = [c / 65535 for c in self.winfo_rgb(bg_color_name)]
+
+        # 3. Faz o mesmo processo para a cor do texto
+        text_color_name = self._apply_appearance_mode(ctk.ThemeManager.theme["CTkLabel"]["text_color"])
+        text_color = [c / 65535 for c in self.winfo_rgb(text_color_name)]
+
+        # 4. Agora passa as cores no formato RGB para o Matplotlib
+        fig.patch.set_facecolor(bg_color)
+        ax.set_facecolor(bg_color)
+
         line_color_cases = "blue"
         line_color_deaths = "red"
 
@@ -747,7 +758,7 @@ class App(ctk.CTk):
             ax.set_xlabel("Data")
             ax.set_ylabel("Contagem")
             ax.set_title(f"Evolução de {chart_type} por {aggregation if aggregation != 'Nenhum' else 'Nacional'}")
-            ax.legend()
+            ax.legend(facecolor=bg_color, labelcolor=text_color)
             fig.autofmt_xdate()
         else:
             ax.text(0.5, 0.5, "Nenhum dado para exibir o gráfico.",
